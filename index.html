@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S&L Fotografia | Gestão de Agenda e Ganhos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sl: {
+              bg: '#121110',
+              surface: '#1A1816',
+              surfaceHover: '#23201E',
+              border: '#2E2A27',
+              cream: '#E6E1D8',
+              muted: '#9C948A',
+              gold: '#C8B89D',
+              goldDark: '#8F7F66'
+            }
+          },
+          fontFamily: {
+            serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+            sans: ['"Inter"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #121110;
+      color: #E6E1D8;
+      font-family: 'Inter', sans-serif;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #121110;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2E2A27;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8F7F66;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.85) sepia(0.2);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-sl-gold selection:text-sl-bg">
+
+  <!-- Toast / Notificação -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-sl-surface border border-sl-gold/40 text-sl-cream px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+      <span id="toast-icon" class="text-sl-gold">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+      </span>
+      <p id="toast-message" class="text-sm font-medium"></p>
+    </div>
+  </div>
+
+  <!-- Cabeçalho -->
+  <header class="border-b border-sl-border bg-sl-bg/95 backdrop-blur-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      
+      <!-- Logo fiel à marca S&L Fotografia -->
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 sm:w-[68px] sm:h-[68px] rounded-full bg-[#11100F] flex items-center justify-center shrink-0 shadow-xl select-none">
+          <svg viewBox="0 0 200 200" class="w-full h-full" xmlns="http://www.w3.org/2000/svg" aria-label="Logo S&L Fotografia">
+            <!-- Círculo externo fino -->
+            <circle cx="100" cy="100" r="93" fill="#11100F" stroke="#E5E0D8" stroke-width="2" />
+
+            <!-- Monograma S & L entrelaçado com serifas editoriais -->
+            <g fill="#E5E0D8" font-family="'Cormorant Garamond', 'Playfair Display', Georgia, serif">
+              <!-- Letra S grande à esquerda -->
+              <text x="41" y="129" font-size="106" font-weight="500" letter-spacing="-2">S</text>
+              
+              <!-- Letra L grande à direita -->
+              <text x="108" y="129" font-size="106" font-weight="500" letter-spacing="-2">L</text>
+
+              <!-- Símbolo & central entrelaçado (com contorno escuro sutil para dar profundidade no cruzamento) -->
+              <text x="81" y="127" font-size="60" font-style="italic" font-weight="500" stroke="#11100F" stroke-width="3.5" paint-order="stroke fill">&amp;</text>
+            </g>
+
+            <!-- Texto FOTOGRAFIA bem espaçado -->
+            <text x="101.5" y="153" text-anchor="middle" fill="#E5E0D8" font-family="'Inter', sans-serif" font-size="10.5" font-weight="400" letter-spacing="4.8">FOTOGRAFIA</text>
+
+            <!-- Traço horizontal minimalista inferior -->
+            <line x1="87" y1="164" x2="113" y2="164" stroke="#E5E0D8" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-serif text-2xl sm:text-3xl font-semibold tracking-wide text-sl-cream">S&amp;L Fotografia</h1>
+          <p class="text-xs text-sl-muted tracking-widest uppercase">Agenda de Ensaios &amp; Controle Financeiro</p>
+        </div>
+      </div>
+
+      <!-- Ações Rápidas -->
+      <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+        <button onclick="exportSummary()" class="px-4 py-2.5 rounded-xl border border-sl-border bg-sl-surface hover:bg-sl-surfaceHover text-sl-cream text-xs sm:text-sm font-medium transition flex items-center gap-2">
+          <svg class="w-4 h-4 text-sl-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+          <span>Copiar Relatório</span>
+        </button>
+        <button onclick="openModal()" class="px-5 py-2.5 rounded-xl bg-sl-cream hover:bg-white text-sl-bg text-xs sm:text-sm font-semibold transition shadow-lg flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span>Novo Agendamento</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Cards de Resumo Financeiro -->
+    <section aria-label="Resumo Financeiro" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Faturamento Total -->
+      <div class="bg-sl-surface border border-sl-border rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <span class="text-xs uppercase tracking-wider text-sl-muted font-medium">Faturamento Previsto</span>
+          <div class="w-8 h-8 rounded-lg bg-sl-bg border border-sl-border flex items-center justify-center text-sl-cream">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p id="stat-total" class="font-serif text-3xl font-semibold text-sl-cream">R$ 0,00</p>
+          <p id="stat-count" class="text-xs text-sl-muted mt-1">0 ensaios no período</p>
+        </div>
+      </div>
+
+      <!-- Já Recebido (Sinais + Quitados) -->
+      <div class="bg-sl-surface border border-sl-border rounded-2xl p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs uppercase tracking-wider text-sl-muted font-medium">Total Recebido</span>
+          <div class="w-8 h-8 rounded-lg bg-emerald-950/60 border border-emerald-800/40 flex items-center justify-center text-emerald-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p id="stat-received" class="font-serif text-3xl font-semibold text-emerald-400">R$ 0,00</p>
+          <p id="stat-received-pct" class="text-xs text-sl-muted mt-1">0% do valor total</p>
+        </div>
+      </div>
+
+      <!-- A Receber (Saldo Pendente) -->
+      <div class="bg-sl-surface border border-sl-border rounded-2xl p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs uppercase tracking-wider text-sl-muted font-medium">A Receber (Restante)</span>
+          <div class="w-8 h-8 rounded-lg bg-amber-950/60 border border-amber-800/40 flex items-center justify-center text-amber-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p id="stat-pending" class="font-serif text-3xl font-semibold text-amber-300">R$ 0,00</p>
+          <p id="stat-pending-count" class="text-xs text-sl-muted mt-1">0 pagamentos pendentes</p>
+        </div>
+      </div>
+
+      <!-- Próximo Ensaio -->
+      <div class="bg-sl-surface border border-sl-gold/30 rounded-2xl p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs uppercase tracking-wider text-sl-gold font-medium">Próximo Horário</span>
+          <div class="w-8 h-8 rounded-lg bg-sl-bg border border-sl-gold/30 flex items-center justify-center text-sl-gold">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p id="stat-next-client" class="font-serif text-2xl font-semibold text-sl-cream truncate">Nenhum agendado</p>
+          <p id="stat-next-time" class="text-xs text-sl-gold mt-1 truncate">Adicione um ensaio na agenda</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Barra de Filtros e Busca -->
+    <section class="bg-sl-surface border border-sl-border rounded-2xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="setFilterStatus('todos')" id="btn-filter-todos" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-medium transition bg-sl-cream text-sl-bg">
+          Todos
+        </button>
+        <button onclick="setFilterStatus('Agendado')" id="btn-filter-Agendado" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-medium transition bg-sl-bg text-sl-muted hover:text-sl-cream border border-sl-border">
+          Agendados
+        </button>
+        <button onclick="setFilterStatus('Em Edição')" id="btn-filter-Em Edição" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-medium transition bg-sl-bg text-sl-muted hover:text-sl-cream border border-sl-border">
+          Em Edição
+        </button>
+        <button onclick="setFilterStatus('Entregue')" id="btn-filter-Entregue" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-medium transition bg-sl-bg text-sl-muted hover:text-sl-cream border border-sl-border">
+          Entregues
+        </button>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <!-- Filtro de Mês -->
+        <div class="flex items-center gap-2">
+          <select id="filter-month" onchange="renderApp()" class="bg-sl-bg border border-sl-border text-sl-cream text-xs sm:text-sm rounded-xl px-3.5 py-2 focus:outline-none focus:border-sl-gold">
+            <option value="all">Todos os Meses</option>
+          </select>
+        </div>
+
+        <!-- Busca por cliente ou pacote -->
+        <div class="relative">
+          <input type="text" id="search-input" oninput="renderApp()" placeholder="Buscar cliente ou local..." class="w-full sm:w-64 bg-sl-bg border border-sl-border text-sl-cream placeholder-sl-muted text-xs sm:text-sm rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-sl-gold">
+          <svg class="w-4 h-4 text-sl-muted absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lista / Agenda de Ensaios -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="font-serif text-2xl font-semibold text-sl-cream">Cronograma de Sessões &amp; Horários</h2>
+        <span id="visible-count" class="text-xs text-sl-muted">Mostrando 0 registros</span>
+      </div>
+
+      <div id="appointments-container" class="grid grid-cols-1 gap-4">
+        <!-- Cards injetados via JavaScript -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="border-t border-sl-border py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-sl-muted">
+      <p class="font-serif text-sm text-sl-cream">S&amp;L Fotografia &copy; 2026</p>
+      <p>Organização interna de horários, ensaios e fluxo financeiro.</p>
+    </div>
+  </footer>
+
+  <!-- Modal de Cadastro / Edição -->
+  <div id="booking-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="bg-sl-surface border border-sl-border rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden my-auto">
+      <div class="px-6 py-4 border-b border-sl-border flex items-center justify-between bg-sl-bg">
+        <div>
+          <h3 id="modal-title" class="font-serif text-2xl font-semibold text-sl-cream">Novo Agendamento</h3>
+          <p class="text-xs text-sl-muted">Preencha os horários e valores do ensaio</p>
+        </div>
+        <button onclick="closeModal()" class="p-2 rounded-xl text-sl-muted hover:text-sl-cream hover:bg-sl-surface transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="booking-form" onsubmit="saveBooking(event)" class="p-6 space-y-4">
+        <input type="hidden" id="booking-id">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Nome do Cliente -->
+          <div>
+            <label class="block text-xs font-medium text-sl-muted uppercase tracking-wider mb-1.5">Cliente / Casal *</label>
+            <input type="text" id="client-name" required placeholder="Ex: Mariana & Lucas" class="w-full bg-sl-bg border border-sl-border rounded-xl px-3.5 py-2.5 text-sm text-sl-cream focus:outline-none focus:border-sl-gold">
+          </div>
+
+          <!-- Tipo de Ensaio -->
+          <div>
+            <label class="block text-xs font-medium text-sl-muted uppercase tracking-wider mb-1.5">Tipo de Ensaio *</label>
+            <select id="session-type" required class="w-full bg-sl-bg border border-sl-border rounded-xl px-3.5 py-2.5 text-sm text-sl-cream focus:outline-none focus:border-sl-gold">
+              <option value="Pré-Wedding">Pré-Wedding</option>
+              <option value="Casamento">Casamento</option>
+              <option value="Gestante">Gestante</option>
+              <option value="Ensaio Externo">Ensaio Externo</option>
+              <option value="Estúdio / Retrato">Estúdio / Retrato</option>
+              <option value="Família / Infantil">Família / Infantil</option>
+              <option value="Evento / Corporativo">Evento / Corporativo</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Data e Horários -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-sl-muted uppercase tracking-wider mb-1.5">Data *</label>
+            <input type="date" id="session-date" required class="w-full bg-sl-bg border border-sl-border rounded-xl px-3.5 py-2.5 text-sm text-sl-cream focus:outline-none focus:border-sl-gold">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-sl-muted uppercase tracking-wider mb-1.5">Início *</label>
+            <input type="time" id="session-start" required class="w-full bg-sl-bg border border-sl-border rounded-xl px-3.5 py-2.5 text-sm text-sl-cream focus:outline-none focus:border-sl-gold">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-sl-muted uppercase tracking-wider mb-1.5">Término *</label>
+            <input type="time" id="session-end" required class="w-full bg-sl-bg border border-sl-border rounded-xl px-3.5 py-2.5 text-sm text-sl-cream focus:outline-none focus:border-sl-gold">
+          </div>
+        </div>
+
+        <!-- Local -->
+        <div>
+          <label class="block text-xs font-medium text-sl-muted uppercase tracking-wider mb-1.5">Local do Ensaio</label>
+          <input type="text" id="session-location" placeholder="Ex: Parque Villa-Lobos / Estúdio S&L" class="w-full bg-sl-bg border border-sl-border rounded-xl px-3.5 py-2.5 text-sm text-sl-cream focus:outline-none focus:border-sl-gold">
+        </div>
+
+        <!-- Valores Financeiros -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-sl-border">
+          <div>
+            <label class="block text-xs font-medium text-sl-muted uppercase tracking-wider mb-1.5">Valor Total do Pacote (R$) *</label>
+            <input type="number" id="total-value" step="0.01" min="0" required placeholder="0,00" oninput="updateRemainingPreview()" class="w-full bg-sl-bg border border-sl-border rounded-xl px-3.5 py-2.5 text-sm text-sl-cream focus:outline-none focus:border-sl-gold">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-sl-muted uppercase tracking-wider mb-1.5">Valor Já Pago / Sinal (R$)</label>
+            <input type="number" id="paid-value" step="0.01" min="0" value="0" placeholder="0,00" oninput="updateRemainingPreview()" class="w-full bg-sl-bg border border-sl-border rounded-xl px-3.5 py-2.5 text-sm text-sl-cream focus:outline-none focus:border-sl-gold">
+          </div>
+        </div>
+
+        <!-- Prévia de Saldo Restante e Status -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center bg-sl-bg p-3.5 rounded-xl border border-sl-border">
+          <div>
+            <span class="text-xs text-sl-muted block">Saldo a Receber:</span>
+            <span id="remaining-preview" class="font-serif text-xl font-semibold text-amber-300">R$ 0,00</span>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-sl-muted uppercase tracking-wider mb-1">Status do Trabalho</label>
+            <select id="session-status" class="w-full bg-sl-surface border border-sl-border rounded-xl px-3 py-2 text-sm text-sl-cream focus:outline-none focus:border-sl-gold">
+              <option value="Agendado">Agendado</option>
+              <option value="Em Edição">Em Edição</option>
+              <option value="Entregue">Entregue</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Observações -->
+        <div>
+          <label class="block text-xs font-medium text-sl-muted uppercase tracking-wider mb-1.5">Observações / Pacote</label>
+          <textarea id="session-notes" rows="2" placeholder="Ex: 40 fotos tratadas, 2 trocas de roupa, álbum impresso..." class="w-full bg-sl-bg border border-sl-border rounded-xl px-3.5 py-2 text-sm text-sl-cream focus:outline-none focus:border-sl-gold"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-sl-border">
+          <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl border border-sl-border text-sl-muted hover:text-sl-cream text-sm font-medium transition">
+            Cancelar
+          </button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-sl-cream hover:bg-white text-sl-bg text-sm font-semibold transition shadow-lg">
+            Salvar na Agenda
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação de Exclusão -->
+  <div id="delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-sl-surface border border-sl-border rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <h3 class="font-serif text-xl font-semibold text-sl-cream">Remover Agendamento?</h3>
+      <p class="text-sm text-sl-muted">Esta ação removerá o horário e os valores deste ensaio da sua agenda. Deseja continuar?</p>
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button onclick="closeDeleteModal()" class="px-4 py-2 rounded-xl border border-sl-border text-sl-muted hover:text-sl-cream text-sm">Cancelar</button>
+        <button id="confirm-delete-btn" class="px-4 py-2 rounded-xl bg-red-900/80 hover:bg-red-800 text-red-100 text-sm font-medium border border-red-700/50">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Dados iniciais de demonstração para a S&L Fotografia (Novembro/Dezembro 2026)
+    let appointments = [
+      {
+        id: '1',
+        client: 'Camila & Rafael',
+        type: 'Pré-Wedding',
+        date: '2026-11-15',
+        start: '15:30',
+        end: '18:00',
+        location: 'Campos do Jordão - Mirante',
+        totalValue: 1450.00,
+        paidValue: 725.00,
+        status: 'Agendado',
+        notes: 'Pacote Ouro: 50 fotos editadas + vídeo teaser.'
+      },
+      {
+        id: '2',
+        client: 'Beatriz Almeida',
+        type: 'Gestante',
+        date: '2026-11-18',
+        start: '09:00',
+        end: '11:00',
+        location: 'Estúdio S&L',
+        totalValue: 850.00,
+        paidValue: 400.00,
+        status: 'Agendado',
+        notes: 'Ensaio minimalista fundo neutro + 3 trocas de figurino.'
+      },
+      {
+        id: '3',
+        client: 'Casamento Juliana & Pedro',
+        type: 'Casamento',
+        date: '2026-11-21',
+        start: '16:00',
+        end: '23:30',
+        location: 'Espaço Villa Jardim',
+        totalValue: 4200.00,
+        paidValue: 3000.00,
+        status: 'Agendado',
+        notes: 'Cobertura completa (2 fotógrafos) + álbum 30x30.'
+      },
+      {
+        id: '4',
+        client: 'Dr. Henrique Costa',
+        type: 'Estúdio / Retrato',
+        date: '2026-11-10',
+        start: '14:00',
+        end: '15:30',
+        location: 'Estúdio S&L',
+        totalValue: 650.00,
+        paidValue: 650.00,
+        status: 'Em Edição',
+        notes: 'Retratos corporativos para LinkedIn e site.'
+      },
+      {
+        id: '5',
+        client: 'Família Monteiro',
+        type: 'Família / Infantil',
+        date: '2026-11-04',
+        start: '10:00',
+        end: '11:30',
+        location: 'Parque Ibirapuera',
+        totalValue: 780.00,
+        paidValue: 780.00,
+        status: 'Entregue',
+        notes: 'Galeria online entregue e aprovada.'
+      }
+    ];
+
+    let currentStatusFilter = 'todos';
+    let deleteTargetId = null;
+
+    // Formatação de Moeda BRL
+    function formatBRL(value) {
+      return Number(value || 0).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      });
+    }
+
+    // Formatação de Data (YYYY-MM-DD -> DD/MM/YYYY e dia da semana)
+    function formatDateInfo(dateStr) {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const dateObj = new Date(year, month - 1, day);
+      const weekdays = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      return {
+        day: String(day).padStart(2, '0'),
+        monthShort: months[month - 1],
+        fullDate: `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`,
+        weekday: weekdays[dateObj.getDay()],
+        yearMonth: `${year}-${String(month).padStart(2, '0')}`
+      };
+    }
+
+    // Toast Notification
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-message').textContent = message;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    // Atualizar seletor de meses dinamicamente
+    function populateMonthFilter() {
+      const select = document.getElementById('filter-month');
+      const currentVal = select.value;
+      const monthNames = {
+        '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
+        '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto',
+        '09': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro'
+      };
+
+      const uniqueMonths = [...new Set(appointments.map(a => a.date.slice(0, 7)))].sort();
+      select.innerHTML = '<option value="all">Todos os Meses</option>';
+      uniqueMonths.forEach(ym => {
+        const [y, m] = ym.split('-');
+        const opt = document.createElement('option');
+        opt.value = ym;
+        opt.textContent = `${monthNames[m]} ${y}`;
+        select.appendChild(opt);
+      });
+
+      if ([...select.options].some(o => o.value === currentVal)) {
+        select.value = currentVal;
+      }
+    }
+
+    // Filtro por status
+    function setFilterStatus(status) {
+      currentStatusFilter = status;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('bg-sl-cream', 'text-sl-bg');
+        btn.classList.add('bg-sl-bg', 'text-sl-muted', 'border', 'border-sl-border');
+      });
+      const activeBtn = document.getElementById(`btn-filter-${status}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-sl-bg', 'text-sl-muted', 'border', 'border-sl-border');
+        activeBtn.classList.add('bg-sl-cream', 'text-sl-bg');
+      }
+      renderApp();
+    }
+
+    // Renderizar Dashboard e Lista
+    function renderApp() {
+      populateMonthFilter();
+
+      const monthFilter = document.getElementById('filter-month').value;
+      const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+
+      // Filtrar dados
+      const filtered = appointments
+        .filter(item => {
+          const matchesStatus = currentStatusFilter === 'todos' || item.status === currentStatusFilter;
+          const matchesMonth = monthFilter === 'all' || item.date.startsWith(monthFilter);
+          const matchesSearch = !searchQuery || 
+            item.client.toLowerCase().includes(searchQuery) || 
+            item.type.toLowerCase().includes(searchQuery) ||
+            (item.location && item.location.toLowerCase().includes(searchQuery));
+          return matchesStatus && matchesMonth && matchesSearch;
+        })
+        .sort((a, b) => {
+          // Ordenar por data e horário de início
+          const dtA = `${a.date}T${a.start}`;
+          const dtB = `${b.date}T${b.start}`;
+          return dtA.localeCompare(dtB);
+        });
+
+      // Cálculos Financeiros (baseados nos itens filtrados pelo mês/busca para análise precisa)
+      const financialScope = appointments.filter(item => {
+        const matchesMonth = monthFilter === 'all' || item.date.startsWith(monthFilter);
+        return matchesMonth;
+      });
+
+      const totalRevenue = financialScope.reduce((sum, a) => sum + Number(a.totalValue), 0);
+      const totalReceived = financialScope.reduce((sum, a) => sum + Number(a.paidValue), 0);
+      const totalPending = Math.max(0, totalRevenue - totalReceived);
+      const pendingCount = financialScope.filter(a => (a.totalValue - a.paidValue) > 0.01).length;
+      const pctReceived = totalRevenue > 0 ? Math.round((totalReceived / totalRevenue) * 100) : 0;
+
+      document.getElementById('stat-total').textContent = formatBRL(totalRevenue);
+      document.getElementById('stat-count').textContent = `${financialScope.length} ${financialScope.length === 1 ? 'ensaio' : 'ensaios'} ${monthFilter === 'all' ? 'no total' : 'neste mês'}`;
+      document.getElementById('stat-received').textContent = formatBRL(totalReceived);
+      document.getElementById('stat-received-pct').textContent = `${pctReceived}% já em caixa`;
+      document.getElementById('stat-pending').textContent = formatBRL(totalPending);
+      document.getElementById('stat-pending-count').textContent = `${pendingCount} ${pendingCount === 1 ? 'cliente com saldo' : 'clientes com saldo'}`;
+
+      // Próximo ensaio agendado
+      const upcoming = appointments
+        .filter(a => a.status === 'Agendado')
+        .sort((a, b) => `${a.date}T${a.start}`.localeCompare(`${b.date}T${b.start}`))[0];
+
+      if (upcoming) {
+        const dInfo = formatDateInfo(upcoming.date);
+        document.getElementById('stat-next-client').textContent = upcoming.client;
+        document.getElementById('stat-next-time').textContent = `${dInfo.fullDate} • ${upcoming.start} às ${upcoming.end}`;
+      } else {
+        document.getElementById('stat-next-client').textContent = 'Agenda livre';
+        document.getElementById('stat-next-time').textContent = 'Nenhum ensaio pendente';
+      }
+
+      // Renderizar lista de agendamentos
+      const container = document.getElementById('appointments-container');
+      document.getElementById('visible-count').textContent = `Mostrando ${filtered.length} ${filtered.length === 1 ? 'registro' : 'registros'}`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-sl-surface border border-sl-border rounded-2xl p-12 text-center space-y-3">
+            <div class="w-12 h-12 rounded-full bg-sl-bg border border-sl-border mx-auto flex items-center justify-center text-sl-muted">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <h3 class="font-serif text-xl text-sl-cream">Nenhum agendamento encontrado</h3>
+            <p class="text-xs text-sl-muted max-w-md mx-auto">Altere os filtros acima ou clique em "Novo Agendamento" para registrar um horário da S&amp;L Fotografia.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        const d = formatDateInfo(item.date);
+        const remaining = Math.max(0, item.totalValue - item.paidValue);
+        const isPaidFull = remaining <= 0.01;
+
+        const statusBadge = {
+          'Agendado': 'bg-sl-gold/15 text-sl-gold border-sl-gold/30',
+          'Em Edição': 'bg-sky-950/70 text-sky-300 border-sky-800/50',
+          'Entregue': 'bg-emerald-950/70 text-emerald-300 border-emerald-800/50'
+        }[item.status] || 'bg-sl-bg text-sl-cream border-sl-border';
+
+        return `
+          <article class="bg-sl-surface hover:bg-sl-surfaceHover/60 border border-sl-border rounded-2xl p-4 sm:p-5 transition flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            
+            <!-- Bloco Data & Horário -->
+            <div class="flex items-start sm:items-center gap-4">
+              <div class="w-16 h-16 rounded-xl bg-sl-bg border border-sl-border flex flex-col items-center justify-center shrink-0">
+                <span class="text-[10px] uppercase tracking-widest text-sl-gold font-semibold">${d.monthShort}</span>
+                <span class="font-serif text-2xl font-bold text-sl-cream leading-none mt-0.5">${d.day}</span>
+              </div>
+
+              <div class="space-y-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="font-serif text-xl sm:text-2xl font-semibold text-sl-cream">${escapeHTML(item.client)}</h3>
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${statusBadge}">
+                    ${item.status}
+                  </span>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-sl-muted">
+                  <span class="flex items-center gap-1.5 text-sl-cream/90 font-medium">
+                    <svg class="w-3.5 h-3.5 text-sl-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    ${d.weekday} • ${item.start} às ${item.end}
+                  </span>
+                  <span class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-sl-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>
+                    ${escapeHTML(item.type)}
+                  </span>
+                  ${item.location ? `
+                    <span class="flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5 text-sl-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                      ${escapeHTML(item.location)}
+                    </span>
+                  ` : ''}
+                </div>
+
+                ${item.notes ? `<p class="text-xs text-sl-muted/80 italic pt-0.5">"${escapeHTML(item.notes)}"</p>` : ''}
+              </div>
+            </div>
+
+            <!-- Bloco Financeiro e Ações -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between lg:justify-end gap-4 pt-3 lg:pt-0 border-t lg:border-t-0 border-sl-border">
+              <div class="flex items-center gap-5 bg-sl-bg px-4 py-2.5 rounded-xl border border-sl-border">
+                <div>
+                  <span class="text-[10px] uppercase tracking-wider text-sl-muted block">Total</span>
+                  <span class="text-sm font-semibold text-sl-cream">${formatBRL(item.totalValue)}</span>
+                </div>
+                <div class="h-6 w-[1px] bg-sl-border"></div>
+                <div>
+                  <span class="text-[10px] uppercase tracking-wider text-sl-muted block">Pago</span>
+                  <span class="text-sm font-semibold text-emerald-400">${formatBRL(item.paidValue)}</span>
+                </div>
+                <div class="h-6 w-[1px] bg-sl-border"></div>
+                <div>
+                  <span class="text-[10px] uppercase tracking-wider text-sl-muted block">Restante</span>
+                  <span class="text-sm font-semibold ${isPaidFull ? 'text-sl-muted' : 'text-amber-300'}">
+                    ${isPaidFull ? 'Quitado' : formatBRL(remaining)}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Botões de Ação -->
+              <div class="flex items-center gap-2 self-end sm:self-center">
+                ${!isPaidFull ? `
+                  <button onclick="markAsPaid('${item.id}')" title="Quitar saldo restante" class="px-3 py-2 rounded-xl bg-emerald-950/70 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-800/50 text-xs font-medium transition flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span>Quitar</span>
+                  </button>
+                ` : ''}
+                <button onclick="editBooking('${item.id}')" title="Editar ensaio" class="p-2 rounded-xl bg-sl-bg hover:bg-sl-border text-sl-cream border border-sl-border transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </button>
+                <button onclick="askDelete('${item.id}')" title="Excluir ensaio" class="p-2 rounded-xl bg-sl-bg hover:bg-red-950/70 text-sl-muted hover:text-red-300 border border-sl-border transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </div>
+
+          </article>
+        `;
+      }).join('');
+    }
+
+    // Segurança contra XSS
+    function escapeHTML(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    // Abrir Modal (Novo)
+    function openModal() {
+      document.getElementById('booking-form').reset();
+      document.getElementById('booking-id').value = '';
+      document.getElementById('modal-title').textContent = 'Novo Agendamento';
+      document.getElementById('session-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('session-start').value = '15:00';
+      document.getElementById('session-end').value = '17:00';
+      updateRemainingPreview();
+      const modal = document.getElementById('booking-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    // Abrir Modal (Edição)
+    function editBooking(id) {
+      const item = appointments.find(a => a.id === id);
+      if (!item) return;
+
+      document.getElementById('booking-id').value = item.id;
+      document.getElementById('modal-title').textContent = 'Editar Agendamento';
+      document.getElementById('client-name').value = item.client;
+      document.getElementById('session-type').value = item.type;
+      document.getElementById('session-date').value = item.date;
+      document.getElementById('session-start').value = item.start;
+      document.getElementById('session-end').value = item.end;
+      document.getElementById('session-location').value = item.location || '';
+      document.getElementById('total-value').value = item.totalValue;
+      document.getElementById('paid-value').value = item.paidValue;
+      document.getElementById('session-status').value = item.status;
+      document.getElementById('session-notes').value = item.notes || '';
+      updateRemainingPreview();
+
+      const modal = document.getElementById('booking-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('booking-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Atualizar cálculo em tempo real no modal
+    function updateRemainingPreview() {
+      const total = parseFloat(document.getElementById('total-value').value) || 0;
+      const paid = parseFloat(document.getElementById('paid-value').value) || 0;
+      const remaining = Math.max(0, total - paid);
+      const previewEl = document.getElementById('remaining-preview');
+      previewEl.textContent = remaining === 0 && total > 0 ? 'Quitado (R$ 0,00)' : formatBRL(remaining);
+      previewEl.className = remaining === 0 && total > 0
+        ? 'font-serif text-xl font-semibold text-emerald-400'
+        : 'font-serif text-xl font-semibold text-amber-300';
+    }
+
+    // Salvar Agendamento
+    function saveBooking(e) {
+      e.preventDefault();
+      const id = document.getElementById('booking-id').value;
+      const totalValue = parseFloat(document.getElementById('total-value').value) || 0;
+      const paidValue = parseFloat(document.getElementById('paid-value').value) || 0;
+
+      const payload = {
+        id: id || String(Date.now()),
+        client: document.getElementById('client-name').value.trim(),
+        type: document.getElementById('session-type').value,
+        date: document.getElementById('session-date').value,
+        start: document.getElementById('session-start').value,
+        end: document.getElementById('session-end').value,
+        location: document.getElementById('session-location').value.trim(),
+        totalValue,
+        paidValue,
+        status: document.getElementById('session-status').value,
+        notes: document.getElementById('session-notes').value.trim()
+      };
+
+      if (id) {
+        const index = appointments.findIndex(a => a.id === id);
+        if (index !== -1) appointments[index] = payload;
+        showToast('Agendamento atualizado com sucesso!');
+      } else {
+        appointments.push(payload);
+        showToast('Novo ensaio adicionado à agenda!');
+      }
+
+      closeModal();
+      renderApp();
+    }
+
+    // Quitar pagamento rapidamente
+    function markAsPaid(id) {
+      const item = appointments.find(a => a.id === id);
+      if (item) {
+        item.paidValue = item.totalValue;
+        renderApp();
+        showToast(`Pagamento de ${item.client} marcado como quitado!`);
+      }
+    }
+
+    // Exclusão com modal próprio
+    function askDelete(id) {
+      deleteTargetId = id;
+      const modal = document.getElementById('delete-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeDeleteModal() {
+      deleteTargetId = null;
+      const modal = document.getElementById('delete-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+      if (deleteTargetId) {
+        appointments = appointments.filter(a => a.id !== deleteTargetId);
+        closeDeleteModal();
+        renderApp();
+        showToast('Agendamento removido.');
+      }
+    });
+
+    // Exportar / Copiar Resumo para WhatsApp
+    function exportSummary() {
+      const total = appointments.reduce((s, a) => s + a.totalValue, 0);
+      const received = appointments.reduce((s, a) => s + a.paidValue, 0);
+      const pending = Math.max(0, total - received);
+
+      let text = `*S&L FOTOGRAFIA - RESUMO DE AGENDA & GANHOS*\n\n`;
+      text += `💰 Faturamento Previsto: ${formatBRL(total)}\n`;
+      text += `✅ Total Recebido: ${formatBRL(received)}\n`;
+      text += `⏳ A Receber: ${formatBRL(pending)}\n\n`;
+      text += `*PRÓXIMOS HORÁRIOS:*\n`;
+
+      const sorted = [...appointments].sort((a, b) => `${a.date}T${a.start}`.localeCompare(`${b.date}T${b.start}`));
+      sorted.forEach(a => {
+        const d = formatDateInfo(a.date);
+        const rem = Math.max(0, a.totalValue - a.paidValue);
+        text += `• ${d.fullDate} (${a.start}-${a.end}) | ${a.client} (${a.type}) - ${rem === 0 ? 'Quitado' : 'Falta ' + formatBRL(rem)}\n`;
+      });
+
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      showToast('Resumo copiado! Pronto para colar no WhatsApp.');
+    }
+
+    // Inicializar aplicação
+    window.addEventListener('DOMContentLoaded', () => {
+      renderApp();
