@@ -299,6 +299,12 @@
           <input type="text" id="session-location" placeholder="Ex: Parque Villa-Lobos / Estúdio S&L" class="w-full bg-sl-bg border border-sl-border rounded-xl px-3.5 py-2.5 text-sm text-sl-cream focus:outline-none focus:border-sl-gold">
         </div>
 
+        <!-- Link do Álbum / Galeria -->
+        <div>
+          <label class="block text-xs font-medium text-sl-muted uppercase tracking-wider mb-1.5">Link do Álbum / Galeria Online</label>
+          <input type="url" id="album-link" placeholder="Ex: https://drive.google.com/... ou Pixieset" class="w-full bg-sl-bg border border-sl-border rounded-xl px-3.5 py-2.5 text-sm text-sl-cream focus:outline-none focus:border-sl-gold">
+        </div>
+
         <!-- Valores Financeiros -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-sl-border">
           <div>
@@ -368,6 +374,7 @@
         start: '15:30',
         end: '18:00',
         location: 'Campos do Jordão - Mirante',
+        albumLink: '',
         totalValue: 1450.00,
         paidValue: 725.00,
         status: 'Agendado',
@@ -381,6 +388,7 @@
         start: '09:00',
         end: '11:00',
         location: 'Estúdio S&L',
+        albumLink: '',
         totalValue: 850.00,
         paidValue: 400.00,
         status: 'Agendado',
@@ -394,6 +402,7 @@
         start: '16:00',
         end: '23:30',
         location: 'Espaço Villa Jardim',
+        albumLink: '',
         totalValue: 4200.00,
         paidValue: 3000.00,
         status: 'Agendado',
@@ -407,6 +416,7 @@
         start: '14:00',
         end: '15:30',
         location: 'Estúdio S&L',
+        albumLink: 'https://drive.google.com/',
         totalValue: 650.00,
         paidValue: 650.00,
         status: 'Em Edição',
@@ -420,6 +430,7 @@
         start: '10:00',
         end: '11:30',
         location: 'Parque Ibirapuera',
+        albumLink: 'https://drive.google.com/',
         totalValue: 780.00,
         paidValue: 780.00,
         status: 'Entregue',
@@ -625,6 +636,19 @@
                 </div>
 
                 ${item.notes ? `<p class="text-xs text-sl-muted/80 italic pt-0.5">"${escapeHTML(item.notes)}"</p>` : ''}
+
+                ${item.albumLink ? `
+                  <div class="pt-1.5 flex flex-wrap items-center gap-2">
+                    <a href="${escapeHTML(item.albumLink)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-sl-gold/15 hover:bg-sl-gold/25 text-sl-gold border border-sl-gold/30 text-xs font-medium transition">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                      <span>Abrir Álbum</span>
+                    </a>
+                    <button type="button" onclick="copyAlbumLink('${item.id}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sl-bg hover:bg-sl-border text-sl-muted hover:text-sl-cream border border-sl-border text-xs transition" title="Copiar link do álbum">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                      <span>Copiar Link</span>
+                    </button>
+                  </div>
+                ` : ''}
               </div>
             </div>
 
@@ -706,6 +730,7 @@
       document.getElementById('session-start').value = item.start;
       document.getElementById('session-end').value = item.end;
       document.getElementById('session-location').value = item.location || '';
+      document.getElementById('album-link').value = item.albumLink || '';
       document.getElementById('total-value').value = item.totalValue;
       document.getElementById('paid-value').value = item.paidValue;
       document.getElementById('session-status').value = item.status;
@@ -750,6 +775,7 @@
         start: document.getElementById('session-start').value,
         end: document.getElementById('session-end').value,
         location: document.getElementById('session-location').value.trim(),
+        albumLink: document.getElementById('album-link').value.trim(),
         totalValue,
         paidValue,
         status: document.getElementById('session-status').value,
@@ -779,12 +805,18 @@
       }
     }
 
-    // Exclusão com modal próprio
-    function askDelete(id) {
-      deleteTargetId = id;
-      const modal = document.getElementById('delete-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+    // Copiar link do álbum rapidamente
+    function copyAlbumLink(id) {
+      const item = appointments.find(a => a.id === id);
+      if (item && item.albumLink) {
+        const textarea = document.createElement('textarea');
+        textarea.value = item.albumLink;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast(`Link do álbum de ${item.client} copiado!`);
+      }
     }
 
     function closeDeleteModal() {
@@ -842,20 +874,3 @@
 
       // Fechar modal ao clicar fora da caixa
       const bookingModal = document.getElementById('booking-modal');
-      if (bookingModal) {
-        bookingModal.addEventListener('click', (e) => {
-          if (e.target === bookingModal) closeModal();
-        });
-      }
-
-      renderApp();
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initApp);
-    } else {
-      initApp();
-    }
-  </script>
-</body>
-</html>
