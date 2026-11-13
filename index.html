@@ -110,11 +110,11 @@
 
       <!-- Ações Rápidas -->
       <div class="flex items-center gap-3 w-full sm:w-auto justify-end relative z-20">
-        <button type="button" id="btn-export-summary" class="cursor-pointer px-4 py-2.5 rounded-xl border border-sl-border bg-sl-surface hover:bg-sl-surfaceHover text-sl-cream text-xs sm:text-sm font-medium transition flex items-center gap-2">
+        <button type="button" id="btn-export-summary" onclick="openExportSummary()" class="cursor-pointer px-4 py-2.5 rounded-xl border border-sl-border bg-sl-surface hover:bg-sl-surfaceHover text-sl-cream text-xs sm:text-sm font-medium transition flex items-center gap-2">
           <svg class="w-4 h-4 text-sl-gold pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
           <span class="pointer-events-none">Copiar Relatório</span>
         </button>
-        <button type="button" id="btn-new-booking" class="cursor-pointer px-5 py-2.5 rounded-xl bg-sl-cream hover:bg-white text-sl-bg text-xs sm:text-sm font-semibold transition shadow-lg flex items-center gap-2">
+        <button type="button" id="btn-new-booking" onclick="openNewBookingModal()" class="cursor-pointer px-5 py-2.5 rounded-xl bg-sl-cream hover:bg-white text-sl-bg text-xs sm:text-sm font-semibold transition shadow-lg flex items-center gap-2">
           <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           <span class="pointer-events-none">Novo Agendamento</span>
         </button>
@@ -125,47 +125,33 @@
   <!-- Conteúdo Principal -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
-    <!-- Cards de Resumo Financeiro -->
-    <section aria-label="Resumo Financeiro" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- Faturamento Total -->
-      <div class="bg-sl-surface border border-sl-border rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden">
+    <!-- Cards de Resumo da Agenda -->
+    <section aria-label="Resumo da Agenda" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <!-- Eventos no Mês -->
+      <div class="bg-sl-surface border border-sl-border rounded-2xl p-5 flex flex-col justify-between">
         <div class="flex items-center justify-between">
-          <span class="text-xs uppercase tracking-wider text-sl-muted font-medium">Faturamento Previsto</span>
+          <span class="text-xs uppercase tracking-wider text-sl-muted font-medium">Eventos no Período</span>
+          <div class="w-8 h-8 rounded-lg bg-sl-bg border border-sl-border flex items-center justify-center text-sl-gold">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p id="stat-events-count" class="font-serif text-3xl font-semibold text-sl-cream">0 eventos</p>
+          <p id="stat-events-sub" class="text-xs text-sl-muted mt-1">0 agendados • 0 entregues</p>
+        </div>
+      </div>
+
+      <!-- Ganhos Totais do Mês -->
+      <div class="bg-sl-surface border border-sl-border rounded-2xl p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs uppercase tracking-wider text-sl-muted font-medium">Ganhos do Período</span>
           <div class="w-8 h-8 rounded-lg bg-sl-bg border border-sl-border flex items-center justify-center text-sl-cream">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
         </div>
         <div class="mt-4">
           <p id="stat-total" class="font-serif text-3xl font-semibold text-sl-cream">R$ 0,00</p>
-          <p id="stat-count" class="text-xs text-sl-muted mt-1">0 ensaios no período</p>
-        </div>
-      </div>
-
-      <!-- Já Recebido (Sinais + Quitados) -->
-      <div class="bg-sl-surface border border-sl-border rounded-2xl p-5 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-xs uppercase tracking-wider text-sl-muted font-medium">Total Recebido</span>
-          <div class="w-8 h-8 rounded-lg bg-emerald-950/60 border border-emerald-800/40 flex items-center justify-center text-emerald-400">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          </div>
-        </div>
-        <div class="mt-4">
-          <p id="stat-received" class="font-serif text-3xl font-semibold text-emerald-400">R$ 0,00</p>
-          <p id="stat-received-pct" class="text-xs text-sl-muted mt-1">0% do valor total</p>
-        </div>
-      </div>
-
-      <!-- A Receber (Saldo Pendente) -->
-      <div class="bg-sl-surface border border-sl-border rounded-2xl p-5 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-xs uppercase tracking-wider text-sl-muted font-medium">A Receber (Restante)</span>
-          <div class="w-8 h-8 rounded-lg bg-amber-950/60 border border-amber-800/40 flex items-center justify-center text-amber-400">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          </div>
-        </div>
-        <div class="mt-4">
-          <p id="stat-pending" class="font-serif text-3xl font-semibold text-amber-300">R$ 0,00</p>
-          <p id="stat-pending-count" class="text-xs text-sl-muted mt-1">0 pagamentos pendentes</p>
+          <p id="stat-total-sub" class="text-xs text-sl-muted mt-1">Soma dos pacotes no filtro atual</p>
         </div>
       </div>
 
@@ -539,24 +525,20 @@
           return dtA.localeCompare(dtB);
         });
 
-      // Cálculos Financeiros (baseados nos itens filtrados pelo mês/busca para análise precisa)
-      const financialScope = appointments.filter(item => {
-        const matchesMonth = monthFilter === 'all' || item.date.startsWith(monthFilter);
-        return matchesMonth;
+      // Cálculos do Período (Quantidade de Eventos e Ganhos Totais)
+      const periodScope = appointments.filter(item => {
+        return monthFilter === 'all' || item.date.startsWith(monthFilter);
       });
 
-      const totalRevenue = financialScope.reduce((sum, a) => sum + Number(a.totalValue), 0);
-      const totalReceived = financialScope.reduce((sum, a) => sum + Number(a.paidValue), 0);
-      const totalPending = Math.max(0, totalRevenue - totalReceived);
-      const pendingCount = financialScope.filter(a => (a.totalValue - a.paidValue) > 0.01).length;
-      const pctReceived = totalRevenue > 0 ? Math.round((totalReceived / totalRevenue) * 100) : 0;
+      const totalEvents = periodScope.length;
+      const scheduledCount = periodScope.filter(a => a.status === 'Agendado').length;
+      const deliveredCount = periodScope.filter(a => a.status === 'Entregue').length;
+      const totalRevenue = periodScope.reduce((sum, a) => sum + Number(a.totalValue), 0);
 
+      document.getElementById('stat-events-count').textContent = `${totalEvents} ${totalEvents === 1 ? 'evento' : 'eventos'}`;
+      document.getElementById('stat-events-sub').textContent = `${scheduledCount} ${scheduledCount === 1 ? 'agendado' : 'agendados'} • ${deliveredCount} ${deliveredCount === 1 ? 'entregue' : 'entregues'}`;
       document.getElementById('stat-total').textContent = formatBRL(totalRevenue);
-      document.getElementById('stat-count').textContent = `${financialScope.length} ${financialScope.length === 1 ? 'ensaio' : 'ensaios'} ${monthFilter === 'all' ? 'no total' : 'neste mês'}`;
-      document.getElementById('stat-received').textContent = formatBRL(totalReceived);
-      document.getElementById('stat-received-pct').textContent = `${pctReceived}% já em caixa`;
-      document.getElementById('stat-pending').textContent = formatBRL(totalPending);
-      document.getElementById('stat-pending-count').textContent = `${pendingCount} ${pendingCount === 1 ? 'cliente com saldo' : 'clientes com saldo'}`;
+      document.getElementById('stat-total-sub').textContent = monthFilter === 'all' ? 'Total de todos os meses' : 'Total dos eventos deste mês';
 
       // Próximo ensaio agendado
       const upcoming = appointments
@@ -704,7 +686,7 @@
     }
 
     // Abrir Modal (Novo)
-    function openModal() {
+    function openNewBookingModal() {
       document.getElementById('booking-form').reset();
       document.getElementById('booking-id').value = '';
       document.getElementById('modal-title').textContent = 'Novo Agendamento';
@@ -819,6 +801,14 @@
       }
     }
 
+    // Modal de Exclusão
+    function askDelete(id) {
+      deleteTargetId = id;
+      const modal = document.getElementById('delete-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
     function closeDeleteModal() {
       deleteTargetId = null;
       const modal = document.getElementById('delete-modal');
@@ -826,25 +816,13 @@
       modal.classList.remove('flex');
     }
 
-    document.getElementById('confirm-delete-btn').addEventListener('click', () => {
-      if (deleteTargetId) {
-        appointments = appointments.filter(a => a.id !== deleteTargetId);
-        closeDeleteModal();
-        renderApp();
-        showToast('Agendamento removido.');
-      }
-    });
-
     // Exportar / Copiar Resumo para WhatsApp
-    function exportSummary() {
+    function openExportSummary() {
       const total = appointments.reduce((s, a) => s + a.totalValue, 0);
-      const received = appointments.reduce((s, a) => s + a.paidValue, 0);
-      const pending = Math.max(0, total - received);
 
-      let text = `*S&L FOTOGRAFIA - RESUMO DE AGENDA & GANHOS*\n\n`;
-      text += `💰 Faturamento Previsto: ${formatBRL(total)}\n`;
-      text += `✅ Total Recebido: ${formatBRL(received)}\n`;
-      text += `⏳ A Receber: ${formatBRL(pending)}\n\n`;
+      let text = `*S&L FOTOGRAFIA - RESUMO DE AGENDA*\n\n`;
+      text += `📸 Total de Eventos: ${appointments.length}\n`;
+      text += `💰 Ganhos Totais: ${formatBRL(total)}\n\n`;
       text += `*PRÓXIMOS HORÁRIOS:*\n`;
 
       const sorted = [...appointments].sort((a, b) => `${a.date}T${a.start}`.localeCompare(`${b.date}T${b.start}`));
@@ -866,11 +844,28 @@
 
     // Inicializar aplicação
     function initApp() {
-      const btnNew = document.getElementById('btn-new-booking');
-      const btnExport = document.getElementById('btn-export-summary');
-      
-      if (btnNew) btnNew.addEventListener('click', openModal);
-      if (btnExport) btnExport.addEventListener('click', exportSummary);
+      const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+      if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', () => {
+          if (deleteTargetId) {
+            appointments = appointments.filter(a => a.id !== deleteTargetId);
+            closeDeleteModal();
+            renderApp();
+            showToast('Agendamento removido.');
+          }
+        });
+      }
 
       // Fechar modal ao clicar fora da caixa
       const bookingModal = document.getElementById('booking-modal');
+      if (bookingModal) {
+        bookingModal.addEventListener('click', (e) => {
+          if (e.target === bookingModal) closeModal();
+        });
+      }
+
+      renderApp();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
